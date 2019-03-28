@@ -1,4 +1,4 @@
-package healthcheck
+package prober
 
 import (
 	"fmt"
@@ -39,13 +39,13 @@ func TestProbers(t *testing.T) {
 		}
 		for _, conf := range checkConfs {
 			key := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"])
-			_, stop := Start(key, NewStatusCheckWithUpdaters(conf))
+			_, stop := StartUpdater(key, LoadSimpleStatusProber(conf))
 			defer stop()
 		}
 		time.Sleep(500 * time.Millisecond)
 		for _, conf := range checkConfs {
-			key, want := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"]), conf["result"] == "OK"
-			if got, ok := Status(key); !ok || got != want {
+			key, want := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"]), SimpleStatusResult(conf["result"] == "OK")
+			if got, ok := UpdaterStatus(key); !ok || got != want {
 				t.Errorf("check=%v, status=%v/%v, want=%v", key, got, ok, want)
 			}
 		}

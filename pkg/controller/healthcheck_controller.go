@@ -10,7 +10,7 @@ import (
 
 	"github.com/xiaopal/kube-informer/pkg/informer"
 	"github.com/xiaopal/kube-informer/pkg/kubeclient"
-	"github.com/xiaopal/kube-service-importer/pkg/healthcheck"
+	"github.com/xiaopal/kube-service-importer/pkg/prober"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/workqueue"
@@ -69,9 +69,9 @@ func StartHealthCheckController(ctx context.Context, kubeClient kubeclient.Clien
 func (c *endpointHealthCheckController) handleEvent(ctx context.Context, event informer.EventType, obj *unstructured.Unstructured) error {
 	switch event {
 	case informer.EventAdd, informer.EventUpdate:
-		healthcheck.Start(nil, nil)
+		prober.Start(nil, nil)
 	case informer.EventDelete:
-		healthcheck.Stop(nil)
+		prober.Stop(nil)
 	}
 	return nil
 }
