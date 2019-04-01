@@ -149,6 +149,14 @@
   version = "1.0.1"
 
 [[projects]]
+  digest = "1:e5d0bd87abc2781d14e274807a470acd180f0499f8bf5bb18606e9ec22ad9de9"
+  name = "github.com/pborman/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "adf5a7427709b9deb95d29d3fa8a2bf9cfd388f1"
+  version = "v1.2"
+
+[[projects]]
   branch = "master"
   digest = "1:3bf17a6e6eaa6ad24152148a631d18662f7212e21637c2699bff3369b7f00fa2"
   name = "github.com/petar/GoLLRB"
@@ -344,8 +352,7 @@
   revision = "5cb15d34447165a97c76ed5a60e4e99c8a01ecfe"
 
 [[projects]]
-  branch = "master"
-  digest = "1:388e54ec849fbc7d8817ecf3af44f0f2336a23a13002a4f1d7591bf07677300f"
+  digest = "1:4a76096693b2210b0c8145855e0310c7a5f0b521b04759e2987f085652bacac5"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -393,7 +400,8 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "4ceb6b6c5db56a2f8f454dd837c07160a3d6e131"
+  revision = "2b1284ed4c93a43499e781493253e2ac5959c4fd"
+  version = "kubernetes-1.13.0"
 
 [[projects]]
   digest = "1:faa366eb192a7d8515bbbfb3f564c875691dada094f53674ea5036d2cc6ae5ee"
