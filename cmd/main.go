@@ -1,25 +1,31 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/xiaopal/kube-informer/pkg/appctx"
 	"github.com/xiaopal/kube-informer/pkg/kubeclient"
+	"github.com/xiaopal/kube-informer/pkg/leaderelect"
+	"github.com/xiaopal/kube-informer/pkg/subreaper"
+
+	"github.com/xiaopal/kube-service-importer/pkg/controller"
 )
 
 var (
 	application   appctx.Interface
 	globalOptions = &struct {
-		Logger      *log.Logger
-		BindAddr    string
-		APIClient   string
-		APISecret   string
-		APIEndpoint string
-		KubeClient  kubeclient.Client
+		Importer       string
+		Logger         *log.Logger
+		Prefix         string
+		KubeClient     kubeclient.Client
+		LeaderHelper   leaderelect.Helper
+		ResyncDuration time.Duration
 	}{}
 )
 
@@ -30,27 +36,41 @@ func newLogger(module string) *log.Logger {
 func runApplication(args []string) error {
 	application = appctx.Start()
 	defer application.End()
+
+	if os.Getpid() == 1 {
+		subreaper.Start(application.Context())
+	}
+	globalOptions.LeaderHelper.Run(application.Context(), func(ctx context.Context) {
+		labelSelector, annotationSources, annotationProbes := fmt.Sprintf("%s%s=%s", globalOptions.Prefix, "importer", globalOptions.Importer),
+			fmt.Sprintf("%s%s", globalOptions.Prefix, "sources"),
+			fmt.Sprintf("%s%s", globalOptions.Prefix, "probes")
+		controller.StartEndpointsImporter(ctx, globalOptions.KubeClient, labelSelector, annotationSources, annotationProbes, globalOptions.ResyncDuration)
+	})
 	<-application.Context().Done()
 	return nil
 }
 
 func main() {
-	globalOptions.Logger = newLogger("main")
-	globalOptions.KubeClient = kubeclient.NewClient(&kubeclient.ClientOpts{})
+	logger, kubeClient := newLogger("main"), kubeclient.NewClient(&kubeclient.ClientOpts{})
 	cmd := &cobra.Command{
 		Use: fmt.Sprintf("%s [flags]", os.Args[0]),
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return nil
-		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runApplication(args)
 		},
 	}
+	leaderHelper := leaderelect.NewHelper(&leaderelect.HelperOpts{
+		DefaultNamespaceFunc: kubeClient.DefaultNamespace,
+		GetConfigFunc:        kubeClient.GetConfig,
+	})
 	flags := cmd.Flags()
 	flags.AddGoFlagSet(flag.CommandLine)
-	globalOptions.KubeClient.BindFlags(flags, "IMPORTER_OPTS_")
-
+	kubeClient.BindFlags(flags, "IMPORTER_OPTS_")
+	leaderHelper.BindFlags(flags, "IMPORTER_OPTS_")
+	flags.StringVar(&globalOptions.Importer, "importer", "", "watch label value")
+	flags.StringVarP(&globalOptions.Prefix, "prefix", "p", "kube-service-importer.xiaopal.github.com/", "watch label/annotations prefix")
+	flags.DurationVar(&globalOptions.ResyncDuration, "resync", 0, "resync period")
+	globalOptions.Logger, globalOptions.KubeClient, globalOptions.LeaderHelper = logger, kubeClient, leaderHelper
 	if err := cmd.Execute(); err != nil {
-		globalOptions.Logger.Fatal(err)
+		logger.Fatal(err)
 	}
 }

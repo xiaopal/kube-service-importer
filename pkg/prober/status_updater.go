@@ -3,11 +3,15 @@ package prober
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"runtime/debug"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/glog"
 )
 
 // StatusUpdater interface
@@ -15,6 +19,7 @@ type StatusUpdater interface {
 	Start(key interface{}, prober StatusProber) (loaded bool, stop func())
 	Stop(key interface{}) bool
 	Status(key interface{}) (status interface{}, ok bool)
+	Get(key interface{}) (prober StatusProber, ok bool)
 }
 
 // StatusWeight interface
@@ -24,6 +29,7 @@ type StatusWeight interface {
 
 // StatusProber interface
 type StatusProber interface {
+	Name() string
 	ProbeStatus(ctx context.Context, timeout time.Duration) (status interface{}, err error)
 	UpdateStatus(status interface{}) error
 	Status() (status interface{}, ok bool)
@@ -45,8 +51,12 @@ type ProbeStatusFunc func(context.Context, time.Duration) (interface{}, error)
 // UpdateStatusFunc type
 type UpdateStatusFunc func(interface{}) error
 
-// ErrorAbort abort silently
-var ErrorAbort = errors.New("Abort silently")
+var (
+	// ErrorAbort abort silently
+	ErrorAbort = errors.New("Abort silently")
+	// ErrorStatusUnknown unknown status silently
+	ErrorStatusUnknown = errors.New("Unknown status silently")
+)
 
 // UpdateOnce func
 func UpdateOnce(updateStatus UpdateStatusFunc) UpdateStatusFunc {
@@ -66,6 +76,7 @@ var NoopOnce = UpdateOnce(nil)
 // StatusProber interface
 type statusProber struct {
 	atomic.Value
+	name         string
 	stored       int32
 	probeStatus  ProbeStatusFunc
 	updateStatus UpdateStatusFunc
@@ -73,6 +84,10 @@ type statusProber struct {
 	timeout      time.Duration
 	riseCount    int
 	fallCount    int
+}
+
+func (p *statusProber) Name() string {
+	return p.name
 }
 
 func (p *statusProber) ProbeStatus(ctx context.Context, timeout time.Duration) (interface{}, error) {
@@ -130,9 +145,14 @@ func (p *statusProber) SetRiseCount(val int) StatusProber {
 	return p
 }
 
+func (p *statusProber) String() string {
+	return fmt.Sprintf("probe: %v interval=%v timeout=%v rise=%v fall=%v", p.Name(), p.Interval(), p.Timeout(), p.RiseCount(), p.FallCount())
+}
+
 // NewStatusProber func
-func NewStatusProber(probeStatus ProbeStatusFunc, updateStatus UpdateStatusFunc) StatusProber {
+func NewStatusProber(name string, probeStatus ProbeStatusFunc, updateStatus UpdateStatusFunc) StatusProber {
 	return &statusProber{
+		name:         name,
 		probeStatus:  probeStatus,
 		updateStatus: updateStatus,
 		interval:     10 * time.Second,
@@ -179,7 +199,7 @@ func (record *statusRecord) StoreStatus(status interface{}) (abort bool) {
 		if err == ErrorAbort {
 			return true
 		}
-		record.u.logger.Printf("update status: %v", err)
+		record.u.logger.Printf("update status (%v): %v", record.Prober(), err)
 		return false
 	}
 	record.status.Store(status)
@@ -216,26 +236,32 @@ func (u *statusUpdater) Start(key interface{}, prober StatusProber) (loaded bool
 		go func() {
 			defer func() {
 				if err := recover(); err != nil {
-					u.logger.Printf("PANAC!!! key=%v: %v", record.key, err)
+					u.logger.Printf("PANAC!!! (%v|%v): %v\n%v", record.key, record.Prober(), err, string(debug.Stack()))
 				}
 				u.Delete(record.key)
 				close(record.closed)
 				stop()
 			}()
-			success, failure, timer := 0, 0, time.NewTimer(record.Prober().Interval())
+			success, failure, timer := 0, 0, time.NewTimer(time.Millisecond)
 			defer timer.Stop()
 			doProbe := func() (status interface{}, statusOK bool, abort bool) {
 				prober := record.Prober()
-				timer.Reset(prober.Interval())
-				ctx, cancel := context.WithTimeout(u.ctx, prober.Timeout())
-				defer cancel()
+				if interval := prober.Interval(); interval > 0 {
+					timer.Reset(interval)
+				} else {
+					abort = true
+				}
+				ctx, cancel := u.ctx, context.CancelFunc(nil)
+				if timeout := prober.Timeout(); timeout > 0 {
+					ctx, cancel = context.WithTimeout(u.ctx, prober.Timeout())
+					defer cancel()
+				}
 				status, err := prober.ProbeStatus(ctx, prober.Timeout())
+				if glog.V(2) || (err != nil && err != ErrorStatusUnknown) {
+					record.u.logger.Printf("probe (%v): status=%v, err=%v", prober, status, err)
+				}
 				if err != nil {
-					if err == ErrorAbort {
-						return nil, false, true
-					}
-					u.logger.Printf("probe: %v", err)
-					return nil, false, false
+					return nil, false, abort || err == ErrorAbort
 				}
 				if weight, weightOK := status.(StatusWeight); weightOK {
 					w := weight.StatusWeight()
@@ -250,7 +276,7 @@ func (u *statusUpdater) Start(key interface{}, prober StatusProber) (loaded bool
 				} else {
 					success, failure, statusOK = 0, 0, true
 				}
-				return status, statusOK, false
+				return status, statusOK, abort
 			}
 			for {
 				select {
@@ -259,8 +285,8 @@ func (u *statusUpdater) Start(key interface{}, prober StatusProber) (loaded bool
 				case <-timer.C:
 					status, statusOK := record.LoadStatus()
 					probeStatus, probeOK, abort := doProbe()
-					if !abort && probeOK && (!statusOK || status != probeStatus) {
-						abort = record.StoreStatus(probeStatus)
+					if probeOK && (!statusOK || status != probeStatus) {
+						abort = record.StoreStatus(probeStatus) || abort
 					}
 					if abort {
 						return
@@ -284,6 +310,13 @@ func (u *statusUpdater) Status(key interface{}) (status interface{}, ok bool) {
 	return false, false
 }
 
+func (u *statusUpdater) Get(key interface{}) (prober StatusProber, ok bool) {
+	if val, loaded := u.Load(key); loaded {
+		return val.(*statusRecord).Prober(), true
+	}
+	return nil, false
+}
+
 // DefaultStatusUpdater var
 var DefaultStatusUpdater = NewStatusUpdater(context.TODO(), nil)
 
@@ -300,4 +333,9 @@ func StopUpdater(key interface{}) bool {
 // UpdaterStatus func
 func UpdaterStatus(key interface{}) (status interface{}, ok bool) {
 	return DefaultStatusUpdater.Status(key)
+}
+
+// UpdaterGet func
+func UpdaterGet(key interface{}) (prober StatusProber, ok bool) {
+	return DefaultStatusUpdater.Get(key)
 }

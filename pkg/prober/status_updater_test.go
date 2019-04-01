@@ -58,13 +58,17 @@ func probeUnknown() (bool, error) {
 
 func TestHeathCheck(t *testing.T) {
 	t.Run("n1", func(t *testing.T) {
-		check1, check2, check3 := NewStatusProber(testProbeStatusFunc(probeFailure, probeSuccess), nil).
+		check1, check2, check3 := NewStatusProber(t.Name(), testProbeStatusFunc(probeFailure, probeSuccess), nil).
 			SetInterval(time.Millisecond).SetTimeout(time.Millisecond).SetRiseCount(2).SetFallCount(2),
-			NewStatusProber(testProbeStatusFunc(probeSuccess), nil).
+			NewStatusProber(t.Name(), testProbeStatusFunc(probeSuccess), nil).
 				SetInterval(time.Millisecond).SetTimeout(time.Millisecond).SetRiseCount(1).SetFallCount(1),
-			NewStatusProber(testProbeStatusFunc(probeFailure), nil).
+			NewStatusProber(t.Name(), testProbeStatusFunc(probeFailure), nil).
 				SetInterval(time.Millisecond).SetTimeout(time.Millisecond).SetRiseCount(2).SetFallCount(2)
 		StartUpdater(t.Name(), check1)
+		//proberOK
+		if prober, proberOK := UpdaterGet(t.Name()); !proberOK {
+			t.Errorf("probe1: %v, %v", prober, proberOK)
+		}
 		time.Sleep(100 * time.Millisecond)
 		//!statusOK (probe 抖动)
 		if status, statusOK := UpdaterStatus(t.Name()); statusOK {
@@ -79,12 +83,20 @@ func TestHeathCheck(t *testing.T) {
 		}
 
 		StopUpdater(t.Name())
+		//proberOK
+		if prober, proberOK := UpdaterGet(t.Name()); proberOK {
+			t.Errorf("probe3: %v, %v", prober, proberOK)
+		}
 		//!statusOK
 		if status, statusOK := UpdaterStatus(t.Name()); statusOK {
 			t.Errorf("status3: %v, %v", status, statusOK)
 		}
 
 		StartUpdater(t.Name(), check3)
+		//proberOK
+		if prober, proberOK := UpdaterGet(t.Name()); !proberOK {
+			t.Errorf("probe4: %v, %v", prober, proberOK)
+		}
 		time.Sleep(100 * time.Millisecond)
 		if status, statusOK := UpdaterStatus(t.Name()); !(statusOK && !status.(testStatus).Bool()) {
 			t.Errorf("status4: %v, %v", status, statusOK)
@@ -93,7 +105,7 @@ func TestHeathCheck(t *testing.T) {
 }
 
 func TestHeathCheckFailure(t *testing.T) {
-	check3 := NewStatusProber(testProbeStatusFunc(probeFailure), nil).
+	check3 := NewStatusProber(t.Name(), testProbeStatusFunc(probeFailure), nil).
 		SetInterval(time.Millisecond).SetTimeout(time.Millisecond).SetRiseCount(2).SetFallCount(2)
 	StartUpdater(t.Name(), check3)
 	time.Sleep(100 * time.Millisecond)
@@ -103,7 +115,7 @@ func TestHeathCheckFailure(t *testing.T) {
 }
 
 func TestHeathCheckOnce(t *testing.T) {
-	check3 := NewStatusProber(testProbeStatusFunc(probeFailure), NoopOnce).
+	check3 := NewStatusProber(t.Name(), testProbeStatusFunc(probeFailure), NoopOnce).
 		SetInterval(time.Millisecond).SetTimeout(time.Millisecond).SetRiseCount(2).SetFallCount(2)
 	StartUpdater(t.Name(), check3)
 	time.Sleep(100 * time.Millisecond)

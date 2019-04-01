@@ -37,14 +37,15 @@ func TestProbers(t *testing.T) {
 			{"probe": "tcp", "host": tsURL.Hostname(), "port": tsURL.Port(), "timeout": "100ms", "interval": "100ms", "fall": "3", "rise": "2", "result": "OK"},
 			{"probe": "tcp", "host": tsURL.Hostname(), "port": "1", "timeout": "100ms", "interval": "100ms", "fall": "3", "rise": "2", "result": "FAIL"},
 		}
-		for _, conf := range checkConfs {
+		for i, prober := range LoadSimpleStatusProbers(checkConfs) {
+			conf := checkConfs[i]
 			key := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"])
-			_, stop := StartUpdater(key, LoadSimpleStatusProber(conf))
+			_, stop := StartUpdater(key, prober)
 			defer stop()
 		}
 		time.Sleep(500 * time.Millisecond)
 		for _, conf := range checkConfs {
-			key, want := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"]), SimpleStatusResult(conf["result"] == "OK")
+			key, want := fmt.Sprintf("%s|%s|%s|%s", conf["probe"], conf["host"], conf["port"], conf["uri"]), DefaultSimpleStatusResult(conf["result"] == "OK", true)
 			if got, ok := UpdaterStatus(key); !ok || got != want {
 				t.Errorf("check=%v, status=%v/%v, want=%v", key, got, ok, want)
 			}

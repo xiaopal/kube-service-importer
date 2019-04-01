@@ -21,6 +21,22 @@
   version = "v1.2.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:1ba1d79f2810270045c328ae5d674321db34e3aae468eb4233883b473c5c0467"
+  name = "github.com/golang/glog"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
+
+[[projects]]
+  branch = "master"
+  digest = "1:b7cb6054d3dff43b38ad2e92492f220f57ae6087ee797dca298139776749ace8"
+  name = "github.com/golang/groupcache"
+  packages = ["lru"]
+  pruneopts = "UT"
+  revision = "5b532d6fd5efaf7fa130d4e859a2fde0fc3a9e1b"
+
+[[projects]]
   digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
   name = "github.com/golang/protobuf"
   packages = [
@@ -49,6 +65,14 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
+
+[[projects]]
+  digest = "1:582b704bebaa06b48c29b0cec224a6058a09c86883aaddabde889cd1a5f73e1b"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
+  version = "v1.1.1"
 
 [[projects]]
   digest = "1:65c4414eeb350c47b8de71110150d0ea8a281835b1f386eacaa3ad7325929c21"
@@ -157,28 +181,30 @@
   version = "v1.0.3"
 
 [[projects]]
-  digest = "1:df75302d9ca931674057e8514e414ea1ed27f1d530e86d4151fa03d9bb1ee77d"
+  digest = "1:03717ae45d1f31448e414e4e26e1fbf357d39a0821e0d6ff64ed5774f878d813"
   name = "github.com/xiaopal/kube-informer"
   packages = [
     "pkg/appctx",
     "pkg/informer",
     "pkg/kubeclient",
+    "pkg/leaderelect",
+    "pkg/subreaper",
   ]
   pruneopts = "UT"
-  revision = "fb8f7d5666dfb963f078617ea4411a0a5e14dbe1"
-  version = "v1.2.1"
+  revision = "29f21accf62a0e50a1aa56612ab06be4d5def2e5"
+  version = "v1.2.2"
 
 [[projects]]
   branch = "master"
-  digest = "1:058e9504b9a79bfe86092974d05bb3298d2aa0c312d266d43148de289a5065d9"
+  digest = "1:bbe51412d9915d64ffaa96b51d409e070665efc5194fcf145c4a27d4133107a4"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
   pruneopts = "UT"
-  revision = "a1f597ede03a7bef967a422b5b3a5bd08805a01e"
+  revision = "a5d413f7728c81fb97d96a2b722368945f651e78"
 
 [[projects]]
   branch = "master"
-  digest = "1:1607f934bc1fe218372d78f9e0bda5a5e656fafe8d4bb3ef075a31c2dab5d9b8"
+  digest = "1:c745644c88df7496196bf316dd0e813f1908215ff29e96622c2fc194f21bac0c"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -189,7 +215,7 @@
     "idna",
   ]
   pruneopts = "UT"
-  revision = "1272bf9dcd53ea65c09668fb4c76e65deb740072"
+  revision = "63eda1eb0650888965ead1296efd04d0b2b61128"
 
 [[projects]]
   branch = "master"
@@ -204,14 +230,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:1aa109187d52894bd8929a34a0a483ea4e57d7e32e86d81c64cea84c1978d68e"
+  digest = "1:6b3e6ddcebac95be1d690dbd53b5aa2e520715becb7e521bb526ccf3b4c53c15"
   name = "golang.org/x/sys"
   packages = [
     "unix",
     "windows",
   ]
   pruneopts = "UT"
-  revision = "6c81ef8f67ca3f42fc9cd71dfbd5f35b0c4b5771"
+  revision = "f49334f85ddcf0f08d7fb6dd7363e9e6d6b777eb"
 
 [[projects]]
   digest = "1:a2ab62866c75542dd18d2b069fec854577a20211d7c0ea6ae746072a1dccdd18"
@@ -245,7 +271,7 @@
   revision = "9d24e82272b4f38b78bc8cff74fa936d31ccd8ef"
 
 [[projects]]
-  digest = "1:6f3bd49ddf2e104e52062774d797714371fac1b8bddfd8e124ce78e6b2264a10"
+  digest = "1:6eb6e3b6d9fffb62958cf7f7d88dbbe1dd6839436b0802e194c590667a40412a"
   name = "google.golang.org/appengine"
   packages = [
     "internal",
@@ -257,8 +283,8 @@
     "urlfetch",
   ]
   pruneopts = "UT"
-  revision = "e9657d882bb81064595ca3b56cbe2546bbabf7b1"
-  version = "v1.4.0"
+  revision = "54a98f90d1c46b7731eb8fb305d2a321c30ef610"
+  version = "v1.5.0"
 
 [[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
@@ -319,7 +345,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:81d48615852c4e17c16913311141fd880aae0d7fb11243298506cb73c110392c"
+  digest = "1:388e54ec849fbc7d8817ecf3af44f0f2336a23a13002a4f1d7591bf07677300f"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -350,23 +376,27 @@
     "pkg/util/framer",
     "pkg/util/intstr",
     "pkg/util/json",
+    "pkg/util/mergepatch",
     "pkg/util/naming",
     "pkg/util/net",
     "pkg/util/runtime",
     "pkg/util/sets",
+    "pkg/util/strategicpatch",
+    "pkg/util/uuid",
     "pkg/util/validation",
     "pkg/util/validation/field",
     "pkg/util/wait",
     "pkg/util/yaml",
     "pkg/version",
     "pkg/watch",
+    "third_party/forked/golang/json",
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "82cbdc1b6ac2c074b688b7f23128f3607bf9034c"
+  revision = "4ceb6b6c5db56a2f8f454dd837c07160a3d6e131"
 
 [[projects]]
-  digest = "1:01f120b94fe3f21519e9dfd33df21bacb2bf19824365e33b91ed501c903a976a"
+  digest = "1:faa366eb192a7d8515bbbfb3f564c875691dada094f53674ea5036d2cc6ae5ee"
   name = "k8s.io/client-go"
   packages = [
     "deprecated-dynamic",
@@ -421,8 +451,10 @@
     "tools/clientcmd/api",
     "tools/clientcmd/api/latest",
     "tools/clientcmd/api/v1",
+    "tools/leaderelection/resourcelock",
     "tools/metrics",
     "tools/pager",
+    "tools/record",
     "tools/reference",
     "transport",
     "util/buffer",
@@ -447,7 +479,15 @@
   version = "v0.2.0"
 
 [[projects]]
-  digest = "1:e43147e5e3a5659d4496c388659f72b0c40219cc6d6a462fe029c961b80c5f5b"
+  branch = "master"
+  digest = "1:20ca56a1299fe3787b1cf86c3a0388fbc11d08604783b32a258eca7a947a7fdb"
+  name = "k8s.io/kube-openapi"
+  packages = ["pkg/util/proto"]
+  pruneopts = "UT"
+  revision = "5e45bb682580c9be5ffa4d27d367f0eeba125c7b"
+
+[[projects]]
+  digest = "1:34644456324cc2e3255733a18808f5eedf2bef02ae1ff1b2c02f45ffa23bfc78"
   name = "k8s.io/kubernetes"
   packages = [
     "pkg/probe",
@@ -456,8 +496,8 @@
     "pkg/version",
   ]
   pruneopts = "UT"
-  revision = "c27b913fddd1a6c480c229191a087698aa92f0b1"
-  version = "v1.13.4"
+  revision = "641856db18352033a0d96dbc99153fa3b27298e5"
+  version = "v1.14.0"
 
 [[projects]]
   digest = "1:7719608fe0b52a4ece56c2dde37bedd95b938677d1ab0f84b8a7852e4c59f849"
@@ -471,12 +511,20 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/golang/glog",
     "github.com/spf13/cobra",
     "github.com/xiaopal/kube-informer/pkg/appctx",
     "github.com/xiaopal/kube-informer/pkg/informer",
     "github.com/xiaopal/kube-informer/pkg/kubeclient",
+    "github.com/xiaopal/kube-informer/pkg/leaderelect",
+    "github.com/xiaopal/kube-informer/pkg/subreaper",
+    "k8s.io/api/core/v1",
+    "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
+    "k8s.io/apimachinery/pkg/runtime",
+    "k8s.io/apimachinery/pkg/types",
     "k8s.io/apimachinery/pkg/util/wait",
+    "k8s.io/client-go/deprecated-dynamic",
     "k8s.io/client-go/util/workqueue",
     "k8s.io/kubernetes/pkg/probe",
     "k8s.io/kubernetes/pkg/probe/http",

@@ -79,6 +79,19 @@ func (c Config) GetInt(name string, defaultVal int) int {
 	return defaultVal
 }
 
+// GetBool func
+func (c Config) GetBool(name string, defaultVal bool) bool {
+	if sval, ok := c[name]; ok {
+		switch strings.ToLower(sval) {
+		case "true", "yes", "1", "t", "y":
+			return true
+		case "false", "no", "0", "f", "n", "-1":
+			return false
+		}
+	}
+	return defaultVal
+}
+
 // GetDuration func
 func (c Config) GetDuration(name string, defaultVal time.Duration) time.Duration {
 	if sval, ok := c[name]; ok {
