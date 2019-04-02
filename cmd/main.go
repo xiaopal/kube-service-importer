@@ -26,6 +26,7 @@ var (
 		KubeClient     kubeclient.Client
 		LeaderHelper   leaderelect.Helper
 		ResyncDuration time.Duration
+		ListenAddr     string
 	}{}
 )
 
@@ -44,7 +45,7 @@ func runApplication(args []string) error {
 		labelSelector, annotationSources, annotationProbes := fmt.Sprintf("%s%s=%s", globalOptions.Prefix, "importer", globalOptions.Importer),
 			fmt.Sprintf("%s%s", globalOptions.Prefix, "sources"),
 			fmt.Sprintf("%s%s", globalOptions.Prefix, "probes")
-		controller.StartEndpointsImporter(ctx, globalOptions.KubeClient, labelSelector, annotationSources, annotationProbes, globalOptions.ResyncDuration)
+		controller.StartEndpointsImporter(ctx, globalOptions.KubeClient, labelSelector, annotationSources, annotationProbes, globalOptions.ResyncDuration, globalOptions.ListenAddr)
 	})
 	<-application.Context().Done()
 	return nil
@@ -66,9 +67,10 @@ func main() {
 	flags.AddGoFlagSet(flag.CommandLine)
 	kubeClient.BindFlags(flags, "IMPORTER_OPTS_")
 	leaderHelper.BindFlags(flags, "IMPORTER_OPTS_")
-	flags.StringVar(&globalOptions.Importer, "importer", "", "watch label value")
+	flags.StringVar(&globalOptions.Importer, "importer", "", "importer profile(watch label value)")
 	flags.StringVarP(&globalOptions.Prefix, "prefix", "p", "kube-service-importer.xiaopal.github.com/", "watch label/annotations prefix")
 	flags.DurationVar(&globalOptions.ResyncDuration, "resync", 0, "resync period")
+	flags.StringVar(&globalOptions.ListenAddr, "listen", "", "start http server to handle /health and /endpoints, eg. :8080")
 	globalOptions.Logger, globalOptions.KubeClient, globalOptions.LeaderHelper = logger, kubeClient, leaderHelper
 	if err := cmd.Execute(); err != nil {
 		logger.Fatal(err)

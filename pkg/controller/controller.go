@@ -41,7 +41,11 @@ type endpointsImporter struct {
 }
 
 // StartEndpointsImporter func
-func StartEndpointsImporter(ctx context.Context, kubeClient kubeclient.Client, labelSelector string, annotationSources, annotationProbes string, resync time.Duration) (controller EndpointsImporter, err error) {
+func StartEndpointsImporter(ctx context.Context, kubeClient kubeclient.Client,
+	labelSelector string,
+	annotationSources, annotationProbes string,
+	resync time.Duration,
+	server string) (controller EndpointsImporter, err error) {
 	if labelSelector == "" {
 		return nil, fmt.Errorf("labelSelector required")
 	}
@@ -75,6 +79,9 @@ func StartEndpointsImporter(ctx context.Context, kubeClient kubeclient.Client, l
 		for c.processUpdates(ctx) {
 		}
 	}, time.Second, ctx.Done())
+	if server != "" {
+		c.informer.EnableIndexServerWithLocations(server, informer.IndexServerLocations{Health: "/health", Default: "/endpoints"})
+	}
 	return c, c.informer.Run(ctx)
 }
 

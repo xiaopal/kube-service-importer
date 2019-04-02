@@ -189,7 +189,7 @@
   version = "v1.0.3"
 
 [[projects]]
-  digest = "1:03717ae45d1f31448e414e4e26e1fbf357d39a0821e0d6ff64ed5774f878d813"
+  digest = "1:ee5189ad6b0ffd90922bad3d7bdfcc0792de9c065a5685c7a1a20f6f38f8e234"
   name = "github.com/xiaopal/kube-informer"
   packages = [
     "pkg/appctx",
@@ -199,8 +199,8 @@
     "pkg/subreaper",
   ]
   pruneopts = "UT"
-  revision = "29f21accf62a0e50a1aa56612ab06be4d5def2e5"
-  version = "v1.2.2"
+  revision = "7fe25428e140894a5c2ab25c722ecddcc1d24edb"
+  version = "v1.2.3"
 
 [[projects]]
   branch = "master"

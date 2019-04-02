@@ -1,6 +1,6 @@
 [[override]]
   name = "github.com/xiaopal/kube-informer"
-  version = "v1.2.2"
+  version = "v1.2.3"
 
 [[override]]
   name = "k8s.io/client-go"
